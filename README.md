@@ -1,16 +1,37 @@
-# shop_app
+# 🛒 Shopping List App
 
-A new Flutter project.
+A simple and functional Flutter app that lets users create and manage a personal shopping list. Built with Flutter and Firebase Realtime Database.
 
-## Getting Started
+## 📱 Features
 
-This project is a starting point for a Flutter application.
+- Add new grocery items with:
+  - Name
+  - Quantity
+  - Category (e.g. Meat, Fish, Vegetables, etc.)
+- Edit existing items via a dialog window
+- Delete items by swiping them
+- Persist data using Firebase
+- Responsive and user-friendly UI
 
-A few resources to get you started if this is your first Flutter project:
+## 🧱 Tech Stack
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- **Flutter** – Cross-platform UI framework
+- **Dart** – Programming language
+- **Firebase Realtime Database** – Cloud-based backend
+- **HTTP package** – For network requests
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## 🚀 Getting Started
+
+1. **Clone the repo**
+
+   ```bash
+   git clone https://github.com/yourusername/shopping_list_app.git
+   cd shopping_list_app
+
+
+## Known Issues
+ 
+The Emulator still displays an old state ->
+ flutter clean
+ flutter pub get
+ flutter run
