@@ -9,6 +9,8 @@ import 'dart:convert';
 class GroceryList extends StatefulWidget {
   const GroceryList({super.key});
 
+  /// Creates the mutable state for the GroceryList widget.
+  /// Returns an instance of [_GroceryListState].
   @override
   State<GroceryList> createState() => _GroceryListState();
 }
@@ -18,12 +20,20 @@ class _GroceryListState extends State<GroceryList> {
   var _isLoading = true;
   String? _error;
 
+  /// Called once when the state is initialized.
+  /// Starts loading grocery items from the backend.
   @override
   void initState() {
     super.initState();
     _loadItems();
   }
 
+  /// Loads the grocery items from the Firebase Realtime Database.
+  ///
+  /// - Sends a GET request to the backend.
+  /// - Handles error states and empty responses.
+  /// - Maps the response data into a list of [GroceryItem]s.
+  /// - Updates the UI state accordingly.
   void _loadItems() async {
     final url = Uri.https(
       'shoppinglist-916c4-default-rtdb.firebaseio.com',
@@ -40,7 +50,6 @@ class _GroceryListState extends State<GroceryList> {
       }
 
       if (response.body == 'null') {
-        // If the response is null, we can return early
         setState(() {
           _groceryItems = [];
           _isLoading = false;
@@ -69,7 +78,6 @@ class _GroceryListState extends State<GroceryList> {
       }
 
       setState(() {
-        // Update the state with the loaded items
         _groceryItems = loadedItems;
         _isLoading = false;
       });
@@ -80,24 +88,28 @@ class _GroceryListState extends State<GroceryList> {
     }
   }
 
+  /// Opens the [NewItem] screen and waits for a new [GroceryItem] to be added.
+  ///
+  /// If a new item is returned, it is added to the current grocery list.
   void _addItem() async {
     final newItem = await Navigator.of(
       context,
     ).push<GroceryItem>(MaterialPageRoute(builder: (ctx) => const NewItem()));
 
     if (newItem == null) {
-      // If no item was added, return early
       return;
     }
 
     setState(() {
-      // Add the new item to the list
       _groceryItems.add(newItem);
     });
 
-    //_loadItems();
+    // Optionally: _loadItems();
   }
 
+  /// Removes a [GroceryItem] from the list and deletes it from Firebase.
+  ///
+  /// If the deletion fails, the item is reinserted into the list.
   void _removeItem(GroceryItem item) async {
     final index = _groceryItems.indexOf(item);
 
@@ -112,7 +124,6 @@ class _GroceryListState extends State<GroceryList> {
 
     final response = await http.delete(url);
 
-    // Will undo the removal if the request fails
     if (response.statusCode >= 400) {
       setState(() {
         _groceryItems.insert(index, item);
@@ -120,6 +131,10 @@ class _GroceryListState extends State<GroceryList> {
     }
   }
 
+  /// Builds the user interface of the GroceryList screen.
+  ///
+  /// Shows a loading spinner, the grocery list, an error message,
+  /// or a placeholder depending on the current state.
   @override
   Widget build(BuildContext context) {
     Widget content = const Center(
@@ -138,17 +153,13 @@ class _GroceryListState extends State<GroceryList> {
             _removeItem(_groceryItems[index]);
           },
           key: ValueKey(_groceryItems[index].id),
-          // Dismissible widget allows swiping to delete
           child: ListTile(
-            // Name des Lebensmittels
             title: Text(_groceryItems[index].name),
-            // Farbliche Markierung der Kategorie
             leading: Container(
               width: 24,
               height: 24,
               color: _groceryItems[index].category.color,
             ),
-            // Anzeige der Menge
             trailing: Text(_groceryItems[index].quantity.toString()),
           ),
         ),

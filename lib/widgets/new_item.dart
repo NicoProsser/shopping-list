@@ -8,6 +8,8 @@ import 'dart:convert';
 class NewItem extends StatefulWidget {
   const NewItem({super.key});
 
+  /// Creates the mutable state for the NewItem widget.
+  /// Returns an instance of [_NewItemState].
   @override
   State<NewItem> createState() {
     return _NewItemState();
@@ -22,9 +24,13 @@ class _NewItemState extends State<NewItem> {
 
   var _isSending = false;
 
+  /// Validates and saves the form input, then sends a POST request
+  /// to the Firebase backend to store the new grocery item.
+  ///
+  /// If the request is successful, it navigates back to the previous
+  /// screen and returns a new [GroceryItem] with the entered data.
   void _saveItem() async {
     if (_formKey.currentState!.validate()) {
-      // If the form is valid, save the data
       _formKey.currentState!.save();
 
       setState(() {
@@ -62,6 +68,11 @@ class _NewItemState extends State<NewItem> {
     }
   }
 
+  /// Builds the widget tree for the "Add a new item" form,
+  /// including text fields, a dropdown for categories, and action buttons.
+  ///
+  /// Shows validation errors, displays a loading spinner while sending data,
+  /// and handles form reset or submission.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -109,7 +120,7 @@ class _NewItemState extends State<NewItem> {
                             value.isEmpty ||
                             int.tryParse(value) == null ||
                             int.tryParse(value)! <= 0) {
-                          return 'Must be grater than 0';
+                          return 'Must be greater than 0';
                         }
                         return null;
                       },
