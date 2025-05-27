@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shopping_list/models/grocery_item.dart';
 import 'package:shopping_list/widgets/new_item.dart';
 import 'package:shopping_list/data/categories.dart';
+import 'package:shopping_list/models/category.dart';
 
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -131,6 +132,121 @@ class _GroceryListState extends State<GroceryList> {
     }
   }
 
+  /// Opens a dialog to edit an existing [GroceryItem].
+  ///
+  /// - Displays a modal form pre-filled with the item's current name, quantity, and category.
+  /// - Validates the input and allows the user to save changes or cancel.
+  /// - If the user confirms:
+  ///   - Updates the item in the local list.
+  ///   - Sends a PATCH request to Firebase to update the item remotely.
+  ///
+  /// This function ensures UI and backend consistency for edited items.
+  void _editItem(GroceryItem item) async {
+    final nameController = TextEditingController(text: item.name);
+    final quantityController = TextEditingController(
+      text: item.quantity.toString(),
+    );
+    Category selectedCategory = item.category;
+
+    final result = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Edit Item'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(labelText: 'Name'),
+            ),
+            TextField(
+              controller: quantityController,
+              decoration: const InputDecoration(labelText: 'Quantity'),
+              keyboardType: TextInputType.number,
+            ),
+            DropdownButtonFormField<Category>(
+              value: selectedCategory,
+              items: categories.entries
+                  .map(
+                    (cat) => DropdownMenuItem<Category>(
+                      value: cat.value,
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 16,
+                            height: 16,
+                            color: cat.value.color,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(cat.value.title),
+                        ],
+                      ),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  selectedCategory = value;
+                }
+              },
+              decoration: const InputDecoration(labelText: 'Category'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final newName = nameController.text.trim();
+              final newQuantity =
+                  int.tryParse(quantityController.text.trim()) ?? item.quantity;
+              if (newName.isNotEmpty && newQuantity > 0) {
+                Navigator.of(ctx).pop({
+                  'name': newName,
+                  'quantity': newQuantity,
+                  'category': selectedCategory,
+                });
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+
+    if (result != null) {
+      final updatedItem = GroceryItem(
+        id: item.id,
+        name: result['name'],
+        quantity: result['quantity'],
+        category: result['category'],
+      );
+
+      final index = _groceryItems.indexWhere((i) => i.id == item.id);
+      setState(() {
+        _groceryItems[index] = updatedItem;
+      });
+
+      // Update in Firebase
+      final url = Uri.https(
+        'shoppinglist-916c4-default-rtdb.firebaseio.com',
+        'shopping-list/${item.id}.json',
+      );
+      await http.patch(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'name': updatedItem.name,
+          'quantity': updatedItem.quantity,
+          'category': updatedItem.category.title,
+        }),
+      );
+    }
+  }
+
   /// Builds the user interface of the GroceryList screen.
   ///
   /// Shows a loading spinner, the grocery list, an error message,
@@ -161,6 +277,7 @@ class _GroceryListState extends State<GroceryList> {
               color: _groceryItems[index].category.color,
             ),
             trailing: Text(_groceryItems[index].quantity.toString()),
+            onTap: () => _editItem(_groceryItems[index]),
           ),
         ),
       );
