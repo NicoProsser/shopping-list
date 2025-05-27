@@ -32,6 +32,7 @@ A simple and functional Flutter app that lets users create and manage a personal
 ## Known Issues
  
 The Emulator still displays an old state ->
+```bash
  flutter clean
  flutter pub get
  flutter run
